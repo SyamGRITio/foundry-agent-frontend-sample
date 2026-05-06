@@ -4,6 +4,9 @@ Azure AI Foundry Agent Service と Azure Static Web Apps を組み合わせて�
 
 レトロピクセル × 夕焼けの世界観で、CRTモニター風の入力欄と、ふきだし型のメッセージ表示でやり取りします。
 
+<img width="944" height="862" alt="image" src="https://github.com/user-attachments/assets/03fdc737-8225-4412-9002-c2a2e00c5ddd" />
+
+
 ## 構成
 
 ```
