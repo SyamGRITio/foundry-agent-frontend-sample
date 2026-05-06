@@ -1,0 +1,10 @@
+{
+  "name": "foundry-agent-api",
+  "version": "0.1.0",
+  "description": "SWA Managed Functions proxy for Foundry Agent Service",
+  "main": "chat/index.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {}
+}

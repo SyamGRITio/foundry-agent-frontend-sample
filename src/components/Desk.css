@@ -1,0 +1,225 @@
+.desk-layer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.desk-surface {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 96px;
+  background: linear-gradient(180deg, var(--wood-light) 0%, var(--wood) 60%, #261812 100%);
+  border-top: 4px solid #2a1a14;
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.06);
+}
+
+.desk-objects {
+  position: absolute;
+  bottom: 92px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 6vw;
+  opacity: 0.92;
+}
+
+@media (max-width: 768px) {
+  .desk-objects {
+    padding: 0 2vw;
+  }
+  .crt {
+    transform: scale(0.7);
+    transform-origin: bottom left;
+  }
+  .mug-wrap,
+  .books,
+  .cactus-wrap {
+    transform: scale(0.8);
+    transform-origin: bottom center;
+  }
+}
+
+/* ---------- CRT MONITOR ---------- */
+.crt {
+  position: relative;
+  width: 120px;
+}
+.crt-frame {
+  width: 120px;
+  height: 96px;
+  background: var(--crt-frame);
+  border: 4px solid var(--crt-frame-shadow);
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 255, 255, 0.18),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.25);
+}
+.crt-screen {
+  width: 100%;
+  height: 100%;
+  background: var(--crt-screen);
+  border: 2px solid #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 6px 6px;
+  font-family: var(--font-pixel);
+  font-size: 14px;
+  color: var(--crt-text);
+  text-shadow: 0 0 4px var(--crt-text-glow);
+  line-height: 1.1;
+  gap: 2px;
+  overflow: hidden;
+}
+.crt-prompt {
+  display: block;
+}
+.crt-cursor {
+  display: inline-block;
+}
+.crt-base {
+  width: 80px;
+  height: 12px;
+  margin: 4px auto 0;
+  background: var(--crt-frame-shadow);
+  border-radius: 0 0 4px 4px;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- COFFEE MUG ---------- */
+.mug-wrap {
+  position: relative;
+  width: 40px;
+  height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+.mug {
+  position: relative;
+  width: 32px;
+  height: 36px;
+  background: var(--mug);
+  border: 3px solid #6f6855;
+  border-radius: 0 0 4px 4px;
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.2);
+}
+.mug::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  height: 6px;
+  background: #3a2418;
+}
+.mug-handle {
+  position: absolute;
+  right: -10px;
+  top: 8px;
+  width: 10px;
+  height: 16px;
+  border: 3px solid #6f6855;
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+}
+.steam {
+  position: absolute;
+  bottom: 38px;
+  left: 16px;
+  width: 4px;
+  height: 12px;
+  background: var(--steam);
+  border-radius: 2px;
+  box-shadow:
+    -6px -6px 0 var(--steam),
+    6px -10px 0 var(--steam);
+}
+.steam-2 {
+  left: 22px;
+}
+
+/* ---------- BOOKS ---------- */
+.books {
+  position: relative;
+  width: 56px;
+  height: 64px;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+}
+.book {
+  width: 56px;
+  height: 14px;
+  border: 3px solid #1a1424;
+  margin-bottom: -3px;
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.15);
+}
+.book-1 {
+  background: var(--book-1);
+  width: 56px;
+}
+.book-2 {
+  background: var(--book-2);
+  width: 50px;
+  margin-left: 3px;
+}
+.book-3 {
+  background: var(--book-3);
+  width: 46px;
+  margin-left: 5px;
+}
+
+/* ---------- CACTUS ---------- */
+.cactus-wrap {
+  position: relative;
+  width: 40px;
+  height: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+.cactus-body {
+  position: absolute;
+  bottom: 18px;
+  left: 12px;
+  width: 16px;
+  height: 36px;
+  background: var(--cactus);
+  border: 3px solid #2c5a3e;
+  border-radius: 4px 4px 0 0;
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.18);
+}
+.cactus-arm {
+  position: absolute;
+  bottom: 32px;
+  right: 6px;
+  width: 8px;
+  height: 16px;
+  background: var(--cactus);
+  border: 3px solid #2c5a3e;
+  border-radius: 4px 4px 0 0;
+}
+.pot {
+  width: 28px;
+  height: 16px;
+  background: #c46b3e;
+  border: 3px solid #6e3a1a;
+  border-radius: 0 0 6px 6px;
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.18);
+  position: relative;
+  z-index: 2;
+}

@@ -1,0 +1,26 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/api/*", "/assets/*", "/*.{css,js,svg,png,jpg,jpeg,gif,webp,ico}"]
+  },
+  "routes": [
+    {
+      "route": "/api/chat",
+      "methods": ["POST", "OPTIONS"],
+      "allowedRoles": ["anonymous"]
+    }
+  ],
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  },
+  "platform": {
+    "apiRuntime": "node:20"
+  }
+}

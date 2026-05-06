@@ -1,0 +1,53 @@
+.sky-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.star {
+  position: absolute;
+  background: var(--star);
+  box-shadow:
+    0 0 4px var(--star),
+    0 0 8px rgba(255, 229, 180, 0.4);
+}
+
+.cloud-wrap {
+  position: absolute;
+  will-change: transform;
+}
+
+/* Pixel-art cloud built from box-shadows on a single 6px square */
+.cloud-shape {
+  width: 6px;
+  height: 6px;
+  background: rgba(255, 220, 230, 0.85);
+  box-shadow:
+    /* row 1 */
+    6px 0 0 rgba(255, 220, 230, 0.85),
+    12px 0 0 rgba(255, 220, 230, 0.85),
+    18px 0 0 rgba(255, 220, 230, 0.85),
+    24px 0 0 rgba(255, 220, 230, 0.85),
+    /* row 2 */
+    -6px 6px 0 rgba(255, 220, 230, 0.85),
+    0 6px 0 rgba(255, 220, 230, 0.85),
+    6px 6px 0 rgba(255, 220, 230, 0.85),
+    12px 6px 0 rgba(255, 220, 230, 0.85),
+    18px 6px 0 rgba(255, 220, 230, 0.85),
+    24px 6px 0 rgba(255, 220, 230, 0.85),
+    30px 6px 0 rgba(255, 220, 230, 0.85),
+    36px 6px 0 rgba(255, 220, 230, 0.85),
+    /* row 3 */
+    -12px 12px 0 rgba(255, 220, 230, 0.85),
+    -6px 12px 0 rgba(255, 220, 230, 0.85),
+    0 12px 0 rgba(255, 220, 230, 0.85),
+    6px 12px 0 rgba(255, 220, 230, 0.85),
+    12px 12px 0 rgba(255, 220, 230, 0.85),
+    18px 12px 0 rgba(255, 220, 230, 0.85),
+    24px 12px 0 rgba(255, 220, 230, 0.85),
+    30px 12px 0 rgba(255, 220, 230, 0.85),
+    36px 12px 0 rgba(255, 220, 230, 0.85),
+    42px 12px 0 rgba(255, 220, 230, 0.85);
+}
