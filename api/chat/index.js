@@ -1,31 +1,63 @@
 /**
  * SWA Managed Function: /api/chat
  *
- * Proxies a single user message to Azure AI Foundry Agent Service
- * using the Threads/Runs REST API, then returns the assistant's reply.
+ * Service Principal（クライアント資格情報フロー）で Entra ID トークンを取得し、
+ * Azure AI Foundry Agent Service の Threads/Runs API を呼び出します。
  *
- * Required environment variables (set in SWA > 環境変数):
- *   FOUNDRY_ENDPOINT  - e.g. https://<account>.services.ai.azure.com/api/projects/<project>
- *   FOUNDRY_AGENT_ID  - the agent's ID (e.g. asst_xxx) or name
- *   FOUNDRY_API_KEY   - project API key (or Entra ID bearer token)
- *
- * Request body:
- *   { "message": "...", "threadId": "thread_xxx" | null }
- *
- * Response body:
- *   { "reply": "...", "citations": [...], "threadId": "thread_xxx" }
+ * 必要な環境変数（SWA「環境変数」で設定）:
+ *   FOUNDRY_ENDPOINT     - https://<account>.services.ai.azure.com/api/projects/<project>
+ *   FOUNDRY_AGENT_ID     - エージェントID
+ *   AZURE_TENANT_ID      - Entra ID テナント ID
+ *   AZURE_CLIENT_ID      - アプリ登録のクライアント ID
+ *   AZURE_CLIENT_SECRET  - アプリ登録のクライアントシークレット
  */
 
 const API_VERSION = '2025-05-01';
 const POLL_INTERVAL_MS = 800;
 const POLL_TIMEOUT_MS = 60_000;
+const TOKEN_SCOPE = 'https://ai.azure.com/.default';
 
-function buildHeaders(apiKey) {
-  // Send both headers so either auth scheme works
+// Function インスタンスのメモリ内でトークンキャッシュ
+let cachedToken = null;
+let cachedTokenExpiresAt = 0;
+
+async function getEntraToken(tenantId, clientId, clientSecret) {
+  const now = Date.now();
+  if (cachedToken && cachedTokenExpiresAt - now > 60_000) {
+    return cachedToken;
+  }
+
+  const url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+  const body = new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: clientId,
+    client_secret: clientSecret,
+    scope: TOKEN_SCOPE,
+  });
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(
+      `Entra ID トークン取得失敗: ${res.status} ${text.slice(0, 300)}`
+    );
+  }
+
+  const data = await res.json();
+  cachedToken = data.access_token;
+  cachedTokenExpiresAt = now + data.expires_in * 1000;
+  return cachedToken;
+}
+
+function buildHeaders(token) {
   return {
     'Content-Type': 'application/json',
-    'api-key': apiKey,
-    Authorization: `Bearer ${apiKey}`,
+    Authorization: `Bearer ${token}`,
   };
 }
 
@@ -33,7 +65,7 @@ async function foundryFetch(url, options, context) {
   const res = await fetch(url, options);
   if (!res.ok) {
     const body = await res.text();
-    context.log.error(`Foundry API ${res.status} ${res.statusText}: ${body}`);
+    context.log.error(`Foundry API ${res.status}: ${body}`);
     throw new Error(`Foundry API ${res.status}: ${body.slice(0, 300)}`);
   }
   return res.json();
@@ -57,17 +89,19 @@ module.exports = async function (context, req) {
 
   const endpoint = (process.env.FOUNDRY_ENDPOINT || '').replace(/\/$/, '');
   const agentId = process.env.FOUNDRY_AGENT_ID;
-  const apiKey = process.env.FOUNDRY_API_KEY;
+  const tenantId = process.env.AZURE_TENANT_ID;
+  const clientId = process.env.AZURE_CLIENT_ID;
+  const clientSecret = process.env.AZURE_CLIENT_SECRET;
   const userMessage = (req.body && req.body.message) || '';
   let threadId = (req.body && req.body.threadId) || null;
 
-  if (!endpoint || !agentId || !apiKey) {
+  if (!endpoint || !agentId || !tenantId || !clientId || !clientSecret) {
     context.res = {
       status: 500,
       headers: cors,
       body: {
         error:
-          'サーバ側の環境変数が未設定です。FOUNDRY_ENDPOINT / FOUNDRY_AGENT_ID / FOUNDRY_API_KEY をSWAに設定してください。',
+          'サーバ側の環境変数が未設定です。FOUNDRY_ENDPOINT / FOUNDRY_AGENT_ID / AZURE_TENANT_ID / AZURE_CLIENT_ID / AZURE_CLIENT_SECRET をSWAに設定してください。',
       },
     };
     return;
@@ -82,11 +116,11 @@ module.exports = async function (context, req) {
     return;
   }
 
-  const headers = buildHeaders(apiKey);
-  const v = `?api-version=${API_VERSION}`;
-
   try {
-    // 1) Create thread if none exists
+    const token = await getEntraToken(tenantId, clientId, clientSecret);
+    const headers = buildHeaders(token);
+    const v = `?api-version=${API_VERSION}`;
+
     if (!threadId) {
       const thread = await foundryFetch(
         `${endpoint}/threads${v}`,
@@ -96,7 +130,6 @@ module.exports = async function (context, req) {
       threadId = thread.id;
     }
 
-    // 2) Add user message to thread
     await foundryFetch(
       `${endpoint}/threads/${threadId}/messages${v}`,
       {
@@ -107,7 +140,6 @@ module.exports = async function (context, req) {
       context
     );
 
-    // 3) Create run
     let run = await foundryFetch(
       `${endpoint}/threads/${threadId}/runs${v}`,
       {
@@ -118,7 +150,6 @@ module.exports = async function (context, req) {
       context
     );
 
-    // 4) Poll until terminal state
     const startTime = Date.now();
     while (
       run.status === 'queued' ||
@@ -144,7 +175,6 @@ module.exports = async function (context, req) {
       );
     }
 
-    // 5) Fetch latest assistant message
     const list = await foundryFetch(
       `${endpoint}/threads/${threadId}/messages${v}&order=desc&limit=10`,
       { method: 'GET', headers },
@@ -156,7 +186,6 @@ module.exports = async function (context, req) {
       throw new Error('アシスタントの応答が見つかりませんでした');
     }
 
-    // 6) Extract text + citations from message content
     let replyText = '';
     const citations = [];
     for (const block of latestAssistant.content || []) {
@@ -166,7 +195,7 @@ module.exports = async function (context, req) {
           if (ann.type === 'file_citation' && ann.file_citation) {
             citations.push({
               fileId: ann.file_citation.file_id,
-              fileName: ann.file_citation.file_id, // file name not always returned
+              fileName: ann.file_citation.file_id,
               quote: ann.text || '',
             });
           } else if (ann.type === 'file_path' && ann.file_path) {
