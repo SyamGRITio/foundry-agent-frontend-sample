@@ -5,15 +5,27 @@
   },
   "routes": [
     {
+      "route": "/.auth/login/github",
+      "statusCode": 404
+    },
+    {
       "route": "/api/chat",
       "methods": ["POST", "OPTIONS"],
-      "allowedRoles": ["anonymous"]
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/api/*",
+      "allowedRoles": ["authenticated"]
+    },
+    {
+      "route": "/*",
+      "allowedRoles": ["authenticated"]
     }
   ],
   "responseOverrides": {
-    "404": {
-      "rewrite": "/index.html",
-      "statusCode": 200
+    "401": {
+      "statusCode": 302,
+      "redirect": "/.auth/login/aad"
     }
   },
   "globalHeaders": {
